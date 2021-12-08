@@ -36,16 +36,13 @@ exports.writeComment = async (req, res, next) => {
     // post.comments에 댓글._id추가
     post.comments.push(comment._id);
     await post.save();
-    // Create 한 댓글을 Object로 변환
-    const responseComment = comment.toObject();
-    // 작성자 검색
-    const user = await User.findById(userId, { userId: 1 });
-    // Object화된 reponseComment의 writer에 user.userId를 넣음
-    responseComment.writer = user.userId;
+    const response = await Comment.findById(comment._id).populate("writer", {
+      userId: 1,
+    });
     return res.status(201).json({
       ok: true,
       message: "Comment write complete",
-      comment: responseComment,
+      comment: response,
     });
   } catch (error) {
     if (!error.statusCode) {
@@ -73,16 +70,15 @@ exports.writeReplyComment = async (req, res, next) => {
       contents: contents,
       createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
     });
-    const responseReComment = reComment.toObject();
-    const user = await User.findById(userId, { userId: 1 });
-    responseReComment.writer = user.userId;
-    return res
-      .status(201)
-      .json({
-        ok: true,
-        message: "Reply Comment write complete",
-        reComment: responseReComment,
-      });
+    const response = await ReplyComment.findById(reComment._id).populate(
+      "writer",
+      { userId: 1 }
+    );
+    return res.status(201).json({
+      ok: true,
+      message: "Reply Comment write complete",
+      reComment: response,
+    });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
