@@ -22,6 +22,6 @@ router.get("/", isAuth, getPosts);
 router.get("/:postId", isAuth, postDetail);
 router.put("/:postId/like", isAuth, postLikeUnlike);
 router.put("/:postId/save", isAuth, savePost);
-router.get("/:postId/likeUsers", showPostLikeUser);
+router.get("/:postId/likeUsers", isAuth, showPostLikeUser);
 
 module.exports = router;

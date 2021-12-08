@@ -2,12 +2,20 @@ const User = require("../models/user");
 
 // 나를 follow 하는 사람 (follower)List
 exports.getfollowers = async (req, res) => {
+  const { userId } = req;
   try {
-    const user = await User.findById(req.params.id).populate("follower", {
-      name: 1,
-      userId: 1,
+    const user = await User.findById(req.params.id)
+      .populate("follower", { name: 1, userId: 1 })
+      .lean();
+    const { follow } = await User.findById(userId, { follow: 1 });
+    user.follower.forEach((follower) => {
+      if (follow.includes(follower._id)) {
+        follower["isFollow"] = true;
+      } else {
+        follower["isFollow"] = false;
+      }
     });
-    res.json({ user: user.follower });
+    return res.json({ ok: true, user: user.follower });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -17,12 +25,20 @@ exports.getfollowers = async (req, res) => {
 
 // 내가 follow 하는 사람 (following)List
 exports.getfollowing = async (req, res) => {
+  const { userId } = req;
   try {
-    const user = await User.findById(req.params.id).populate("follow", {
-      name: 1,
-      userId: 1,
+    const user = await User.findById(req.params.id)
+      .populate("follow", { name: 1, userId: 1 })
+      .lean();
+    const { follow } = await User.findById(userId, { follow: 1 });
+    user.follow.forEach((follower) => {
+      if (follow.includes(follower._id)) {
+        follower["isFollow"] = true;
+      } else {
+        follower["isFollow"] = false;
+      }
     });
-    res.json({ user: user.follow });
+    return res.json({ ok: true, user: user.follow });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;

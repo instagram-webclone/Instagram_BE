@@ -362,13 +362,24 @@ exports.savePost = async (req, res, next) => {
 };
 
 exports.showPostLikeUser = async (req, res, next) => {
-  const { postId } = req.params;
+  const {
+    userId,
+    params: { postId },
+  } = req;
   try {
-    const post = await Post.findById(postId, { likeUsers: 1 }).populate(
-      "likeUsers",
-      { userId: 1, name: 1 }
-    );
-    return res.status(200).json({ ok: true, likeUsers: post.likeUsers });
+    const post = await Post.findById(postId, { likeUsers: 1 })
+      .populate("likeUsers", { userId: 1, name: 1 })
+      .lean();
+    const { follow } = await User.findById(userId, { follow: 1 });
+    const likeUsers = post.likeUsers;
+    likeUsers.forEach((user) => {
+      if (follow.includes(user._id)) {
+        user["isFollow"] = true;
+      } else {
+        user["isFollow"] = false;
+      }
+    });
+    return res.status(200).json({ ok: true, likeUsers });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
