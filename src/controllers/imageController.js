@@ -34,14 +34,21 @@ exports.uploadProfileImage = async (file, userId) => {
   try {
     const ext = path.extname(file.originalname);
     const filename = `profile_${userId}_${Date.now()}${ext}`;
-    const resizedImage = await sharp(file.buffer)
-      .resize({ width: 600 })
-      .withMetadata()
-      .toBuffer();
-    await bucket
-      .file(`profile/${filename}`)
-      .createWriteStream()
-      .end(resizedImage);
+    if (file.size > 10000) {
+      const resizedImage = await sharp(file.buffer)
+        .resize({ width: 200 })
+        .withMetadata()
+        .toBuffer();
+      await bucket
+        .file(`profile/${filename}`)
+        .createWriteStream()
+        .end(resizedImage);
+    } else {
+      await bucket
+        .file(`profile/${filename}`)
+        .createWriteStream()
+        .end(file.buffer);
+    }
     const profileImgUrl = `https://firebasestorage.googleapis.com/v0/b/${storageBucket}/o/profile%2F${filename}?alt=media`;
     return { filename, profileImgUrl };
   } catch (error) {
