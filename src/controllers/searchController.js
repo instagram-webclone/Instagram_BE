@@ -48,7 +48,7 @@ exports.search = async (req, res, next) => {
           $regex: new RegExp(userKeyword, "i"),
         },
       },
-      { userId: 1, name: 1 }
+      { userId: 1, name: 1, profileImage: 1 }
     );
     return res.status(200).json({ ok: true, user });
   } catch (error) {

@@ -172,3 +172,39 @@ exports.commentLikeUnlike = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.showCommentLikeUsers = async (req, res, next) => {
+  const {
+    userId,
+    params: { commentId },
+  } = req;
+  try {
+    // 댓글
+    const comment = await Comment.findById(commentId, { like: 1 })
+      .populate("like", { userId: 1, name: 1 })
+      .lean();
+    // 대댓글
+    if (!comment) {
+      const reComment = await ReplyComment.findById(commentId, { like: 1 })
+        .populate("like", { userId: 1, name: 1 })
+        .lean();
+      const likeUsers = reComment.like;
+      return res.status(200).json({ ok: true, likeUsers: likeUsers });
+    }
+    const { follow } = await User.findById(userId, { follow: 1 });
+    const likeUsers = comment.like;
+    likeUsers.forEach((user) => {
+      if (follow.includes(user._id)) {
+        user["isFollow"] = true;
+      } else {
+        user["isFollow"] = false;
+      }
+    });
+    return res.status(200).json({ ok: true, likeUsers: likeUsers });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+    next(error);
+  }
+};

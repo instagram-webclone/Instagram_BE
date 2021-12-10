@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const User = require("../models/user");
 const Post = require("../models/post");
 
-exports.getOwnerPost = async (req, res, next) => {
+exports.getUserData = async (req, res, next) => {
   const {
     userId,
     params: { id },
@@ -46,6 +46,7 @@ exports.getOwnerPost = async (req, res, next) => {
       {
         $project: {
           imageUrl: 1,
+          createdAt: 1,
           commentCount: { $size: "$comments" },
           likeCount: { $size: "$likeUsers" },
         },
