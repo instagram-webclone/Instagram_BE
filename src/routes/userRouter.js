@@ -1,6 +1,6 @@
 const express = require("express");
 
-const { getOwnerPost } = require("../controllers/userController");
+const { getUserData } = require("../controllers/userController");
 const { isAuth } = require("../middlewares/authMiddleware");
 const {
   getfollowers,
@@ -10,7 +10,7 @@ const {
 
 const router = express.Router();
 
-router.get("/:id", isAuth, getOwnerPost);
+router.get("/:id", isAuth, getUserData);
 
 router.get("/followers/:id", isAuth, getfollowers);
 router.get("/following/:id", isAuth, getfollowing);
