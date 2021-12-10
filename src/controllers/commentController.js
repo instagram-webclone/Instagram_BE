@@ -191,7 +191,15 @@ exports.showCommentLikeUsers = async (req, res, next) => {
       const likeUsers = reComment.like;
       return res.status(200).json({ ok: true, likeUsers: likeUsers });
     }
+    const { follow } = await User.findById(userId, { follow: 1 });
     const likeUsers = comment.like;
+    likeUsers.forEach((user) => {
+      if (follow.includes(user._id)) {
+        user["isFollow"] = true;
+      } else {
+        user["isFollow"] = false;
+      }
+    });
     return res.status(200).json({ ok: true, likeUsers: likeUsers });
   } catch (error) {
     if (!error.statusCode) {
