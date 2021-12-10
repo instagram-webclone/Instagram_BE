@@ -111,7 +111,6 @@ exports.getPosts = async (req, res, next) => {
           hashtags: 1,
           likeUsers: 1,
           createdAt: 1,
-          commentCount: 1,
           likeCount: 1,
           isLike: {
             $in: [new mongoose.Types.ObjectId(userId), "$likeUsers"],
@@ -167,6 +166,7 @@ exports.getPosts = async (req, res, next) => {
           as: "comments",
         },
       },
+      { $addFields: { commentCount: { $size: "$comments" } } },
       { $sort: { createdAt: -1 } },
     ]);
     if (!posts) {
@@ -198,7 +198,6 @@ exports.postDetail = async (req, res, next) => {
           contents: 1,
           hashtags: 1,
           createdAt: 1,
-          commentCount: 1,
           likeCount: 1,
           isLike: { $in: [new mongoose.Types.ObjectId(userId), "$likeUsers"] },
           commentIsAllowed: 1,
@@ -222,6 +221,19 @@ exports.postDetail = async (req, res, next) => {
           as: "writer",
         },
       },
+      {
+        $lookup: {
+          from: "comments",
+          let: { id: "$_id" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$postId", "$$id"] } } },
+            { $project: { _id: 1 } },
+          ],
+          as: "comments",
+        },
+      },
+      { $addFields: { commentCount: { $size: "$comments" } } },
+      { $project: { comments: 0 } },
       { $unwind: "$writer" },
     ]);
     if (!post) {

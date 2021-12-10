@@ -47,22 +47,55 @@ exports.getUserData = async (req, res, next) => {
         $project: {
           imageUrl: 1,
           createdAt: 1,
-          commentCount: { $size: "$comments" },
+          // commentCount: { $size: "$comments" },
           likeCount: { $size: "$likeUsers" },
         },
       },
+      {
+        $lookup: {
+          from: "comments",
+          let: { id: "$_id" },
+          pipeline: [{ $match: { $expr: { $eq: ["$postId", "$$id"] } } }],
+          as: "comments",
+        },
+      },
+      { $addFields: { commentCount: { $size: "$comments" } } },
+      { $project: { comments: 0 } },
       { $sort: { createdAt: -1 } },
     ]);
     // 로그인한 사용자와 req.params.id가 일치할 경우
     if (userId === owner._id.toString()) {
-      const userWithSavedPost = await User.findOne(
-        { userId: id },
+      const myData = await User.aggregate([
+        { $match: { userId: id } },
+        { $project: { savedPost: 1 } },
         {
-          savedPost: 1,
-        }
-      ).populate("savedPost", { imageUrl: 1, commentCount: 1, likeCount: 1 });
-      const savedPost = userWithSavedPost.savedPost;
-      return res.status(200).json({ ok: true, user, post, savedPost });
+          $lookup: {
+            from: "posts",
+            let: { savedPost: "$savedPost" },
+            pipeline: [
+              { $match: { $expr: { $in: ["$_id", "$$savedPost"] } } },
+              { $project: { imageUrl: 1, likeCount: 1 } },
+              {
+                $lookup: {
+                  from: "comments",
+                  let: { id: "$_id" },
+                  pipeline: [
+                    { $match: { $expr: { $eq: ["$postId", "$$id"] } } },
+                    { $project: { _id: 1 } },
+                  ],
+                  as: "comments",
+                },
+              },
+              { $addFields: { commentCount: { $size: "$comments" } } },
+              { $project: { comments: 0 } },
+            ],
+            as: "savedPost",
+          },
+        },
+      ]);
+      return res
+        .status(200)
+        .json({ ok: true, user, post, savedPost: myData[0].savedPost });
     } else {
       return res.status(200).json({ ok: true, user, post });
     }

@@ -33,8 +33,7 @@ exports.writeComment = async (req, res, next) => {
       contents: contents,
       createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
     });
-    // post.comments에 댓글._id추가
-    post.comments.push(comment._id);
+    post.commentCount += 1;
     await post.save();
     const response = await Comment.findById(comment._id).populate("writer", {
       userId: 1,
@@ -110,8 +109,8 @@ exports.deleteComment = async (req, res, next) => {
     if (!deletedCount) {
       return res.status(400).json({ message: "Comment delete fail" });
     }
-    post.comments.pull(commentId);
-    await post.save();
+    // post.comments.pull(commentId);
+    // await post.save();
     return res
       .status(200)
       .json({ ok: true, message: "Comment delete success" });
