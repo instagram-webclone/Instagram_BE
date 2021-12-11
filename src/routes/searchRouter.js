@@ -1,11 +1,14 @@
 const express = require("express");
 
 const { isAuth } = require("../middlewares/authMiddleware");
-const { search, showData } = require("../controllers/searchController");
+const {
+  search,
+  getHashtagSearchResult,
+} = require("../controllers/searchController");
 
 const router = express.Router();
 
 router.get("/search", isAuth, search);
-router.get("/searchResult", isAuth, showData);
+router.get("/search/:keyword", getHashtagSearchResult);
 
 module.exports = router;

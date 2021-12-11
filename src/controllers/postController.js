@@ -109,11 +109,13 @@ exports.getPosts = async (req, res, next) => {
           imageUrl: 1,
           contents: 1,
           hashtags: 1,
-          likeUsers: 1,
           createdAt: 1,
           likeCount: 1,
           isLike: {
             $in: [new mongoose.Types.ObjectId(userId), "$likeUsers"],
+          },
+          isPostSaved: {
+            $in: [new mongoose.Types.ObjectId(userId), "$savedUsers"],
           },
           commentIsAllowed: 1,
         },
@@ -141,7 +143,7 @@ exports.getPosts = async (req, res, next) => {
           let: { id: "$_id" },
           pipeline: [
             { $match: { $expr: { $eq: ["$postId", "$$id"] } } },
-            { $project: { __v: 0 } },
+            { $project: { postId: 1, writer: 1, contents: 1, createdAt: 1 } },
             {
               $lookup: {
                 from: "users",
@@ -149,13 +151,7 @@ exports.getPosts = async (req, res, next) => {
                 pipeline: [
                   { $match: { $expr: { $eq: ["$_id", "$$writer"] } } },
                   {
-                    $project: {
-                      password: 0,
-                      like: 0,
-                      follow: 0,
-                      follower: 0,
-                      __v: 0,
-                    },
+                    $project: { userId: 1 },
                   },
                 ],
                 as: "writer",
@@ -200,6 +196,9 @@ exports.postDetail = async (req, res, next) => {
           createdAt: 1,
           likeCount: 1,
           isLike: { $in: [new mongoose.Types.ObjectId(userId), "$likeUsers"] },
+          isPostSaved: {
+            $in: [new mongoose.Types.ObjectId(userId), "$savedUsers"],
+          },
           commentIsAllowed: 1,
         },
       },
@@ -246,10 +245,7 @@ exports.postDetail = async (req, res, next) => {
           postId: 1,
           writer: 1,
           contents: 1,
-          taggedPerson: 1,
-          hashtags: 1,
           createdAt: 1,
-          like: 1,
           isLike: { $in: [new mongoose.Types.ObjectId(userId), "$like"] },
         },
       },
@@ -279,10 +275,7 @@ exports.postDetail = async (req, res, next) => {
                 parentsId: 1,
                 writer: 1,
                 contents: 1,
-                taggedPerson: 1,
-                hashtags: 1,
                 createdAt: 1,
-                like: 1,
                 isLike: { $in: [new mongoose.Types.ObjectId(userId), "$like"] },
               },
             },
@@ -353,16 +346,21 @@ exports.savePost = async (req, res, next) => {
   } = req;
   try {
     const user = await User.findById(userId);
+    const post = await Post.findById(postId);
     if (!user) {
       return res.status(400).json({ message: "Cannot find user" });
     }
     if (user.savedPost.includes(postId)) {
       user.savedPost.pull(postId);
+      post.savedUsers.pull(userId);
       await user.save();
+      await post.save();
       return res.status(200).json({ ok: true, message: "Post delete success" });
     }
     user.savedPost.push(postId);
+    post.savedUsers.push(userId);
     await user.save();
+    await post.save();
     return res.status(200).json({ ok: true, message: "Post save success" });
   } catch (error) {
     if (!error.statusCode) {
