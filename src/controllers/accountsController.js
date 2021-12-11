@@ -1,5 +1,8 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
+const Post = require("../models/post");
+const Comment = require("../models/comment");
+const ReplyComment = require("../models/replyComment");
 const { editValidate } = require("../middlewares/authMiddleware");
 const { passwordValidate } = require("../middlewares/authMiddleware");
 const {
@@ -168,6 +171,63 @@ exports.deleteProfileImg = async (req, res, next) => {
     return res
       .status(200)
       .json({ ok: true, message: "Profile delete success" });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+    next(error);
+  }
+};
+
+// 회원탈퇴
+exports.deleteUser = async (req, res, next) => {
+  const { userId } = req;
+  try {
+    const myId = await User.findById(userId);
+    if (!myId) {
+      return res.json({ error: "사용자를 찾을 수 없습니다" });
+    }
+    const user = await User.find({
+      $or: [{ follow: userId }, { follower: userId }, { like: userId }],
+    });
+    user.map(async (myId) => {
+      if (myId.follow.includes(userId)) {
+        myId.follow.pull(userId);
+      }
+      if (myId.follower.includes(userId)) {
+        myId.follower.pull(userId);
+      }
+      if (myId.like.includes(userId)) {
+        myId.like.pull(userId);
+      }
+      await myId.save();
+    });
+    const postUser = await Post.find({ likeUsers: userId });
+    postUser.map(async (myId) => {
+      if (myId.likeUsers.includes(userId)) {
+        myId.likeUsers.pull(userId);
+      }
+      await myId.save();
+    });
+    const commentUser = await Comment.find({ like: userId });
+    commentUser.map(async (myId) => {
+      if (myId.like.includes(userId)) {
+        myId.like.pull(userId);
+      }
+      await myId.save();
+    });
+    const replyCommentUser = await ReplyComment.find({ like: userId });
+    replyCommentUser.map(async (myId) => {
+      if (myId.like.includes(userId)) {
+        myId.like.pull(userId);
+      }
+      await myId.save();
+    });
+    await ReplyComment.deleteMany({ writer: userId });
+    await Comment.deleteMany({ writer: userId });
+    await Post.deleteMany({ writer: userId });
+    await User.deleteOne({ _id: userId });
+    res.json({ ok: true });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
