@@ -6,6 +6,6 @@ const { search, showData } = require("../controllers/searchController");
 const router = express.Router();
 
 router.get("/search", isAuth, search);
-router.get("/searchResult", isAuth, showData);
+router.get("/search/:keyword", isAuth, showData);
 
 module.exports = router;
