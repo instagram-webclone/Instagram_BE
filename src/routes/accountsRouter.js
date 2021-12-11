@@ -8,6 +8,7 @@ const {
   passwordChange,
   changeProfileImg,
   deleteProfileImg,
+  deleteUser,
 } = require("../controllers/accountsController");
 
 const router = express.Router();
@@ -22,5 +23,6 @@ router.put(
   changeProfileImg
 );
 router.delete("/profileImg", isAuth, deleteProfileImg);
+router.delete("/deleteUser", isAuth, deleteUser);
 
 module.exports = router;
