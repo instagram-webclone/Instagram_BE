@@ -14,6 +14,9 @@ const postSchema = new mongoose.Schema({
   contents: { type: String, required: true },
   hashtags: [{ type: String }],
   likeUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  savedUsers: [
+    { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] },
+  ],
   createdAt: { type: String, required: true },
   likeCount: { type: Number, default: 0 },
   commentIsAllowed: { type: Boolean, default: true },
