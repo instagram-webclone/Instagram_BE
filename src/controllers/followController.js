@@ -5,7 +5,7 @@ exports.getfollowers = async (req, res) => {
   const { userId } = req;
   try {
     const user = await User.findById(req.params.id)
-      .populate("follower", { name: 1, userId: 1 })
+      .populate("follower", { name: 1, userId: 1, profileImage: 1 })
       .lean();
     const { follow } = await User.findById(userId, { follow: 1 });
     user.follower.forEach((follower) => {
@@ -28,7 +28,7 @@ exports.getfollowing = async (req, res) => {
   const { userId } = req;
   try {
     const user = await User.findById(req.params.id)
-      .populate("follow", { name: 1, userId: 1 })
+      .populate("follow", { name: 1, userId: 1, profileImage: 1 })
       .lean();
     const { follow } = await User.findById(userId, { follow: 1 });
     user.follow.forEach((follower) => {
