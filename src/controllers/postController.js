@@ -246,6 +246,7 @@ exports.postDetail = async (req, res, next) => {
           writer: 1,
           contents: 1,
           createdAt: 1,
+          like: 1,
           isLike: { $in: [new mongoose.Types.ObjectId(userId), "$like"] },
         },
       },
@@ -276,6 +277,7 @@ exports.postDetail = async (req, res, next) => {
                 writer: 1,
                 contents: 1,
                 createdAt: 1,
+                like: 1,
                 isLike: { $in: [new mongoose.Types.ObjectId(userId), "$like"] },
               },
             },
@@ -293,10 +295,14 @@ exports.postDetail = async (req, res, next) => {
               },
             },
             { $unwind: "$writer" },
+            { $addFields: { likeCount: { $size: "$like" } } },
+            { $project: { like: 0 } },
           ],
           as: "childComments",
         },
       },
+      { $addFields: { likeCount: { $size: "$like" } } },
+      { $project: { like: 0 } },
     ]);
     if (!comment) {
       return res.status(400).json({ message: "Cannot find comments" });
