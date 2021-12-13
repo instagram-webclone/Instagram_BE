@@ -169,25 +169,44 @@ exports.getPosts = async (req, res, next) => {
       return res.status(400).json({ message: "Cannot find posts" });
     }
     // 로그인한 사용자를 제외한 모든 사용자 검색
-    const users = await User.find(
-      { _id: { $ne: userId } },
-      { userId: 1, profileImage: 1 }
-    );
-    // 중복없는 랜덤값 구하기
-    const randomIndexArray = [];
-    for (let i = 0; i < 5; i++) {
-      const randomNum = Math.floor(Math.random() * users.length);
-      if (!randomIndexArray.includes(randomNum)) {
-        randomIndexArray.push(randomNum);
-      } else {
-        i--;
+    // const users = await User.find(
+    //   { _id: { $ne: userId } },
+    //   { userId: 1, profileImage: 1 }
+    // );
+    const users = await User.aggregate([
+      {
+        $match: {
+          _id: { $ne: new mongoose.Types.ObjectId(userId) },
+          follower: { $nin: [new mongoose.Types.ObjectId(userId)] },
+        },
+      },
+      {
+        $project: {
+          userId: 1,
+          profileImage: 1,
+          isFollow: { $in: [new mongoose.Types.ObjectId(userId), "$follower"] },
+        },
+      },
+    ]);
+    let recommendedUser = []; // 추천인
+    if (users.length < 5) {
+      recommendedUser = users;
+    } else {
+      // 중복없는 랜덤값 구하기
+      const randomIndexArray = [];
+      for (let i = 0; i < 5; i++) {
+        const randomNum = Math.floor(Math.random() * users.length);
+        if (!randomIndexArray.includes(randomNum)) {
+          randomIndexArray.push(randomNum);
+        } else {
+          i--;
+        }
       }
+      // 추천인 추가
+      randomIndexArray.forEach((index) => {
+        recommendedUser.push(users[index]);
+      });
     }
-    // 추천인
-    const recommendedUser = [];
-    randomIndexArray.forEach((index) => {
-      recommendedUser.push(users[index]);
-    });
     return res.status(200).json({ ok: true, posts, recommendedUser });
   } catch (error) {
     if (!error.statusCode) {
