@@ -168,7 +168,27 @@ exports.getPosts = async (req, res, next) => {
     if (!posts) {
       return res.status(400).json({ message: "Cannot find posts" });
     }
-    return res.status(200).json({ ok: true, posts: posts });
+    // 로그인한 사용자를 제외한 모든 사용자 검색
+    const users = await User.find(
+      { _id: { $ne: userId } },
+      { userId: 1, profileImage: 1 }
+    );
+    // 중복없는 랜덤값 구하기
+    const randomIndexArray = [];
+    for (let i = 0; i < 5; i++) {
+      const randomNum = Math.floor(Math.random() * users.length);
+      if (!randomIndexArray.includes(randomNum)) {
+        randomIndexArray.push(randomNum);
+      } else {
+        i--;
+      }
+    }
+    // 추천인
+    const recommendedUser = [];
+    randomIndexArray.forEach((index) => {
+      recommendedUser.push(users[index]);
+    });
+    return res.status(200).json({ ok: true, posts, recommendedUser });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
