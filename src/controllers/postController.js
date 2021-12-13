@@ -168,7 +168,46 @@ exports.getPosts = async (req, res, next) => {
     if (!posts) {
       return res.status(400).json({ message: "Cannot find posts" });
     }
-    return res.status(200).json({ ok: true, posts: posts });
+    // 로그인한 사용자를 제외한 모든 사용자 검색
+    // const users = await User.find(
+    //   { _id: { $ne: userId } },
+    //   { userId: 1, profileImage: 1 }
+    // );
+    const users = await User.aggregate([
+      {
+        $match: {
+          _id: { $ne: new mongoose.Types.ObjectId(userId) },
+          follower: { $nin: [new mongoose.Types.ObjectId(userId)] },
+        },
+      },
+      {
+        $project: {
+          userId: 1,
+          profileImage: 1,
+          isFollow: { $in: [new mongoose.Types.ObjectId(userId), "$follower"] },
+        },
+      },
+    ]);
+    let recommendedUser = []; // 추천인
+    if (users.length < 5) {
+      recommendedUser = users;
+    } else {
+      // 중복없는 랜덤값 구하기
+      const randomIndexArray = [];
+      for (let i = 0; i < 5; i++) {
+        const randomNum = Math.floor(Math.random() * users.length);
+        if (!randomIndexArray.includes(randomNum)) {
+          randomIndexArray.push(randomNum);
+        } else {
+          i--;
+        }
+      }
+      // 추천인 추가
+      randomIndexArray.forEach((index) => {
+        recommendedUser.push(users[index]);
+      });
+    }
+    return res.status(200).json({ ok: true, posts, recommendedUser });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -246,6 +285,7 @@ exports.postDetail = async (req, res, next) => {
           writer: 1,
           contents: 1,
           createdAt: 1,
+          like: 1,
           isLike: { $in: [new mongoose.Types.ObjectId(userId), "$like"] },
         },
       },
@@ -276,6 +316,7 @@ exports.postDetail = async (req, res, next) => {
                 writer: 1,
                 contents: 1,
                 createdAt: 1,
+                like: 1,
                 isLike: { $in: [new mongoose.Types.ObjectId(userId), "$like"] },
               },
             },
@@ -293,10 +334,14 @@ exports.postDetail = async (req, res, next) => {
               },
             },
             { $unwind: "$writer" },
+            { $addFields: { likeCount: { $size: "$like" } } },
+            { $project: { like: 0 } },
           ],
           as: "childComments",
         },
       },
+      { $addFields: { likeCount: { $size: "$like" } } },
+      { $project: { like: 0 } },
     ]);
     if (!comment) {
       return res.status(400).json({ message: "Cannot find comments" });
