@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const shuffle = require("shuffle-array");
 
 const Post = require("../models/post");
 const Comment = require("../models/comment");
@@ -453,6 +454,27 @@ exports.showPostLikeUser = async (req, res, next) => {
       },
     ]);
     return res.status(200).json({ ok: true, likeUsers: posts[0].likeUsers });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+    next(error);
+  }
+};
+
+// 게시물 랜덤 불러오기
+exports.randomPosts = async (req, res, next) => {
+  try {
+    const post = await Post.find(
+      {},
+      {
+        imageUrl: 1,
+        likeCount: 1,
+        commentCount: 1,
+      }
+    );
+    const randomPost = shuffle(post);
+    return res.json({ ok: true, randomPost });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
