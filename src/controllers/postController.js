@@ -151,10 +151,19 @@ exports.getPosts = async (req, res, next) => {
                 pipeline: [
                   { $match: { $expr: { $eq: ["$_id", "$$writer"] } } },
                   {
-                    $project: { userId: 1 },
+                    $project: { name: 1, userId: 1 },
                   },
                 ],
                 as: "writer",
+              },
+            },
+            {
+              $project: {
+                postId: 1,
+                writer: 1,
+                contents: 1,
+                createdAt: 1,
+                isLike: { $in: [userId, "$like"] },
               },
             },
             { $sort: { createdAt: -1 } },
