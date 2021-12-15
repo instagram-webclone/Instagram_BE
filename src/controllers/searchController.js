@@ -1,5 +1,6 @@
 const User = require("../models/user");
 const Post = require("../models/post");
+const HashtagFollow = require("../models/hashtagFollow");
 const mongoose = require("mongoose");
 
 exports.search = async (req, res, next) => {
@@ -61,19 +62,56 @@ exports.search = async (req, res, next) => {
 
 exports.getHashtagSearchResult = async (req, res, next) => {
   const {
+    userId,
     params: { keyword },
   } = req;
   try {
-    const word = keyword.split("#")[1];
     // const posts = await Post.find(
     //   {
     //     hashtags: { $elemMatch: { $regex: new RegExp(word, "i") } },
     //   },
     //   { imageUrl: 1, commentCount: 1, likeCount: 1 }
     // );
+    let hashtag;
+    hashtag = await HashtagFollow.aggregate([
+      { $match: { hashtag: keyword } },
+      {
+        $project: {
+          _id: 0,
+          hashtag: 1,
+          isFollow: { $in: [userId, "$followUsers"] },
+        },
+      },
+      {
+        $lookup: {
+          from: "posts",
+          pipeline: [{ $match: { $expr: { $in: [keyword, "$hashtags"] } } }],
+          as: "posts",
+        },
+      },
+      { $addFields: { postCount: { $size: "$posts" } } },
+      { $project: { posts: 0 } },
+    ]);
+    if (!hashtag.length) {
+      const posts = await Post.find(
+        {
+          hashtags: { $elemMatch: { $regex: new RegExp(keyword, "i") } },
+        },
+        { imageUrl: 1, commentCount: 1, likeCount: 1 }
+      ).lean();
+      hashtag = [
+        {
+          hashtag: keyword,
+          isFollow: false,
+          postCount: posts.length,
+        },
+      ];
+    }
     const posts = await Post.aggregate([
       {
-        $match: { hashtags: { $elemMatch: { $regex: new RegExp(word, "i") } } },
+        $match: {
+          hashtags: { $elemMatch: { $regex: new RegExp(keyword, "i") } },
+        },
       },
       {
         $lookup: {
@@ -92,7 +130,9 @@ exports.getHashtagSearchResult = async (req, res, next) => {
     if (!posts) {
       return res.status(400).json({ message: "Cannot find posts" });
     }
-    return res.status(200).json({ ok: true, posts: posts });
+    return res
+      .status(200)
+      .json({ ok: true, searchHashtag: hashtag[0], posts: posts });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;

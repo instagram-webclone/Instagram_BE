@@ -56,6 +56,9 @@ const userSchema = new mongoose.Schema({
       ref: "User",
     },
   ],
+  hashtagFollow: [
+    { type: mongoose.Schema.Types.ObjectId, ref: "HashtagFollow" },
+  ],
   savedPost: [
     { type: mongoose.Schema.Types.ObjectId, ref: "Post", default: [] },
   ],
