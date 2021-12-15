@@ -143,7 +143,6 @@ exports.getPosts = async (req, res, next) => {
           let: { id: "$_id" },
           pipeline: [
             { $match: { $expr: { $eq: ["$postId", "$$id"] } } },
-            { $project: { postId: 1, writer: 1, contents: 1, createdAt: 1 } },
             {
               $lookup: {
                 from: "users",
