@@ -9,6 +9,6 @@ const {
 const router = express.Router();
 
 router.get("/search", isAuth, search);
-router.get("/search/:keyword", getHashtagSearchResult);
+router.get("/search/:keyword", isAuth, getHashtagSearchResult);
 
 module.exports = router;
