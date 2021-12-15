@@ -8,20 +8,54 @@ const Hashtags = require("../models/hashtagFollow");
 exports.getfollowers = async (req, res, next) => {
   const { userId } = req;
   try {
-    const user = await User.findById(req.params.id)
-      .populate("follower", { name: 1, userId: 1, profileImage: 1 })
-      .lean();
-    const { follow } = await User.findById(userId, { follow: 1 });
-    user.follower.forEach((follower) => {
-      if (follow.includes(follower._id)) {
-        follower["isFollow"] = true;
-      } else {
-        follower["isFollow"] = false;
-      }
-    });
+    const users = await User.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(req.params.id) } },
+      { $project: { userId: 1, follower: 1 } },
+      {
+        $lookup: {
+          from: "users",
+          let: { follower: "$follower" },
+          pipeline: [
+            { $match: { $expr: { $in: ["$_id", "$$follower"] } } },
+            {
+              $lookup: {
+                from: "users",
+                let: { id: "$_id" },
+                pipeline: [
+                  { $match: { _id: new mongoose.Types.ObjectId(userId) } },
+                  { $project: { userId: 1 } },
+                ],
+                as: "user",
+              },
+            },
+            { $unwind: "$user" },
+            {
+              $project: {
+                name: 1,
+                userId: 1,
+                profileImage: 1,
+                isFollow: { $in: ["$user._id", "$follower"] },
+              },
+            },
+          ],
+          as: "follower",
+        },
+      },
+    ]);
+    // const user = await User.findById(req.params.id)
+    //   .populate("follower", { name: 1, userId: 1, profileImage: 1 })
+    //   .lean();
+    // const { follow } = await User.findById(userId, { follow: 1 });
+    // user.follower.forEach((follower) => {
+    //   if (follow.includes(follower._id)) {
+    //     follower["isFollow"] = true;
+    //   } else {
+    //     follower["isFollow"] = false;
+    //   }
+    // });
     return res.json({
       ok: true,
-      user: user.follower,
+      user: users[0].follower,
     });
   } catch (error) {
     if (!error.statusCode) {
