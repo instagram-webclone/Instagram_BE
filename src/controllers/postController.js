@@ -430,19 +430,29 @@ exports.showPostLikeUser = async (req, res, next) => {
     params: { postId },
   } = req;
   try {
-    const post = await Post.findById(postId, { likeUsers: 1 })
-      .populate("likeUsers", { userId: 1, name: 1 })
-      .lean();
-    const { follow } = await User.findById(userId, { follow: 1 });
-    const likeUsers = post.likeUsers;
-    likeUsers.forEach((user) => {
-      if (follow.includes(user._id)) {
-        user["isFollow"] = true;
-      } else {
-        user["isFollow"] = false;
-      }
-    });
-    return res.status(200).json({ ok: true, likeUsers });
+    const posts = await Post.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(postId) } },
+      { $project: { likeUsers: 1 } },
+      {
+        $lookup: {
+          from: "users",
+          let: { likeUsers: "$likeUsers" },
+          pipeline: [
+            { $match: { $expr: { $in: ["$_id", "$$likeUsers"] } } },
+            {
+              $project: {
+                name: 1,
+                userId: 1,
+                profileImage: 1,
+                isFollow: { $in: [userId, "$follow"] },
+              },
+            },
+          ],
+          as: "likeUsers",
+        },
+      },
+    ]);
+    return res.status(200).json({ ok: true, likeUsers: posts[0].likeUsers });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
