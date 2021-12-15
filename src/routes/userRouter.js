@@ -7,6 +7,7 @@ const {
   getfollowing,
   follow,
   hashtagFollow,
+  deleteFollower,
 } = require("../controllers/followController");
 
 const router = express.Router();
@@ -17,5 +18,6 @@ router.get("/followers/:id", isAuth, getfollowers);
 router.get("/following/:id", isAuth, getfollowing);
 router.put("/follow/:id", isAuth, follow);
 router.put("/hashFollow/:hashtag", isAuth, hashtagFollow);
+router.put("/follower/deleteFollow/:id", isAuth, deleteFollower);
 
 module.exports = router;

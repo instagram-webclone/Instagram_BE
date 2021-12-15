@@ -243,3 +243,21 @@ exports.hashtagFollow = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.deleteFollower = async (req, res) => {
+  try {
+    const myId = await User.findById(req.userId);
+    const user = await User.findById(req.params.id);
+    if (myId.follower.includes(req.params.id)) {
+      myId.follower.pull(req.params.id);
+      await myId.save();
+      user.follow.pull(req.userId);
+      await user.save();
+    }
+    return res.json({ ok: true });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+  }
+};
