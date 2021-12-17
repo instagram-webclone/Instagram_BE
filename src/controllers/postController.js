@@ -407,14 +407,12 @@ exports.savePost = async (req, res, next) => {
     if (user.savedPost.includes(postId)) {
       user.savedPost.pull(postId);
       post.savedUsers.pull(userId);
-      await user.save();
-      await post.save();
+      await Promise.all([user.save(), post.save()]);
       return res.status(200).json({ ok: true, message: "Post delete success" });
     }
     user.savedPost.push(postId);
     post.savedUsers.push(userId);
-    await user.save();
-    await post.save();
+    await Promise.all([user.save(), post.save()]);
     return res.status(200).json({ ok: true, message: "Post save success" });
   } catch (error) {
     if (!error.statusCode) {

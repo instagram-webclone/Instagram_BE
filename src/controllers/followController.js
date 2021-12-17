@@ -95,7 +95,6 @@ exports.getfollowing = async (req, res, next) => {
                 name: 1,
                 userId: 1,
                 profileImage: 1,
-                hashtagFollow: 1,
                 isFollow: { $in: ["$user._id", "$follower"] },
               },
             },
