@@ -352,6 +352,7 @@ exports.postDetail = async (req, res, next) => {
       },
       { $addFields: { likeCount: { $size: "$like" } } },
       { $project: { like: 0 } },
+      { $sort: { createdAt: -1 } },
     ]);
     if (!comment) {
       return res.status(400).json({ message: "Cannot find comments" });
