@@ -167,6 +167,7 @@ exports.getPosts = async (req, res, next) => {
               },
             },
             { $sort: { createdAt: -1 } },
+            { $limit: 2 },
           ],
           as: "comments",
         },
