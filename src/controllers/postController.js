@@ -112,6 +112,7 @@ exports.getPosts = async (req, res, next) => {
           hashtags: 1,
           createdAt: 1,
           likeCount: 1,
+          commentCount: 1,
           isLike: {
             $in: [new mongoose.Types.ObjectId(userId), "$likeUsers"],
           },
@@ -172,7 +173,7 @@ exports.getPosts = async (req, res, next) => {
           as: "comments",
         },
       },
-      { $addFields: { commentCount: { $size: "$comments" } } },
+      // { $addFields: { commentCount: { $size: "$comments" } } },
       { $sort: { createdAt: -1 } },
     ]);
     if (!posts) {
