@@ -12,7 +12,7 @@ const postSchema = new mongoose.Schema({
   filename: { type: String },
   imageUrl: { type: String, default: null },
   contents: { type: String, required: true },
-  hashtags: [{ type: String }],
+  hashtags: [{ type: String, default: [] }],
   likeUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   savedUsers: [
     { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] },
