@@ -12,12 +12,13 @@ const postSchema = new mongoose.Schema({
   filename: { type: String },
   imageUrl: { type: String, default: null },
   contents: { type: String, required: true },
-  hashtags: [{ type: String }],
+  hashtags: [{ type: String, default: [] }],
   likeUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   savedUsers: [
     { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] },
   ],
   createdAt: { type: String, required: true },
+  commentCount: { type: Number, default: 0 },
   likeCount: { type: Number, default: 0 },
   commentIsAllowed: { type: Boolean, default: true },
 });

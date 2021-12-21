@@ -109,8 +109,8 @@ exports.deleteComment = async (req, res, next) => {
     if (!deletedCount) {
       return res.status(400).json({ message: "Comment delete fail" });
     }
-    // post.comments.pull(commentId);
-    // await post.save();
+    post.commentCount -= deletedCount;
+    await post.save();
     return res
       .status(200)
       .json({ ok: true, message: "Comment delete success" });

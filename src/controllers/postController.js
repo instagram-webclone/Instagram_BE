@@ -28,7 +28,7 @@ exports.postUpload = async (req, res, next) => {
       filename: filename,
       imageUrl: imageUrl,
       contents: contents,
-      hashtags: hashtags,
+      hashtags: hashtags === null ? [] : hashtags,
       createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
       commentIsAllowed: commentIsAllowed,
     });
@@ -112,6 +112,7 @@ exports.getPosts = async (req, res, next) => {
           hashtags: 1,
           createdAt: 1,
           likeCount: 1,
+          commentCount: 1,
           isLike: {
             $in: [new mongoose.Types.ObjectId(userId), "$likeUsers"],
           },
@@ -167,11 +168,12 @@ exports.getPosts = async (req, res, next) => {
               },
             },
             { $sort: { createdAt: -1 } },
+            { $limit: 2 },
           ],
           as: "comments",
         },
       },
-      { $addFields: { commentCount: { $size: "$comments" } } },
+      // { $addFields: { commentCount: { $size: "$comments" } } },
       { $sort: { createdAt: -1 } },
     ]);
     if (!posts) {
