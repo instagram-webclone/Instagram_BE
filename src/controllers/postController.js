@@ -28,7 +28,7 @@ exports.postUpload = async (req, res, next) => {
       filename: filename,
       imageUrl: imageUrl,
       contents: contents,
-      hashtags: hashtags,
+      hashtags: hashtags === null ? [] : hashtags,
       createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
       commentIsAllowed: commentIsAllowed,
     });
