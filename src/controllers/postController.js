@@ -164,7 +164,7 @@ exports.getPosts = async (req, res, next) => {
                 writer: 1,
                 contents: 1,
                 createdAt: 1,
-                isLike: { $in: [userId, "$like"] },
+                isLike: { $in: [new mongoose.Types.ObjectId(userId), "$like"] },
               },
             },
             { $sort: { createdAt: -1 } },
