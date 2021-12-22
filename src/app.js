@@ -4,6 +4,8 @@ const morgan = require("morgan");
 const cors = require("cors");
 require("./db");
 
+const socketIO = require("./socket");
+
 const authRouter = require("./routes/authRouter");
 const postRouter = require("./routes/postRouter");
 const commentRouter = require("./routes/commentRouter");
@@ -35,6 +37,4 @@ app.use((error, req, res, next) => {
   return res.status(errorStatus).json({ message, data });
 });
 
-app.listen(app.get("port"), () => {
-  console.log(`✅ Server listening on http://localhost:${app.get("port")}`);
-});
+socketIO(app);
