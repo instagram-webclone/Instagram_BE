@@ -3,8 +3,6 @@ const socketIO = require("socket.io");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 
-const moment = require("./moment");
-
 const Post = require("../src/models/post");
 const User = require("../src/models/user");
 const Notification = require("../src/models/notification");
@@ -36,30 +34,36 @@ module.exports = (app) => {
   socketServer.on("connection", (socket) => {
     const { id, userId, profileImage } = socket.user;
     connectedUser[id] = socket.id;
-    console.log("Client connected " + socket.id);
-    console.log(connectedUser);
+    // console.log("Client connected " + socket.id);
+    // console.log(connectedUser);
     socket.on("disconnect", () => {
       delete connectedUser[id];
-      console.log("Client disconnected ", socket.id);
+      // console.log("Client disconnected ", socket.id);
     });
     socket.on("postLike", async (postId, targetId) => {
       try {
-        const post = await Post.findById(postId, { imageUrl: 1 }).lean();
-        if (connectedUser[targetId]) {
+        const post = await Post.findById(postId, {
+          contents: 1,
+          likeUsers: 1,
+          imageUrl: 1,
+        });
+        const isLike = post.likeUsers.includes(id);
+        if (connectedUser[targetId] && isLike) {
           socket.to(connectedUser[targetId]).emit("postLike", {
             notiType: "postLike",
-            post: [post],
+            post: { imageUrl: post.imageUrl, contents: post.contents },
             sendUser: { userId, profileImage },
+          });
+        }
+        if (isLike) {
+          await Notification.create({
+            notiType: "postLike",
+            receiveUser: targetId,
+            sendUser: id,
+            postId: postId,
             date: Date.now(),
           });
         }
-        await Notification.create({
-          notiType: "postLike",
-          receiveUser: targetId,
-          sendUser: id,
-          postId: postId,
-          date: Date.now(),
-        });
       } catch (error) {
         console.log(error);
       }
@@ -69,28 +73,50 @@ module.exports = (app) => {
         const user = await User.aggregate([
           { $match: { _id: new mongoose.Types.ObjectId(id) } },
           {
+            $lookup: {
+              from: "users",
+              let: { id: "$_id" },
+              pipeline: [
+                {
+                  $match: { _id: new mongoose.Types.ObjectId(targetId) },
+                },
+                { $project: { follow: 1 } },
+              ],
+              as: "receiveUser",
+            },
+          },
+          { $unwind: "$receiveUser" },
+          {
             $project: {
               userId: 1,
               profileImage: 1,
-              isFollow: {
-                $in: [new mongoose.Types.ObjectId(targetId), "$follower"],
+              isFollowTarget: {
+                $in: [new mongoose.Types.ObjectId(targetId), "$follow"],
+              },
+              isFollowMe: {
+                $in: [new mongoose.Types.ObjectId(id), "$receiveUser.follow"],
               },
             },
           },
         ]);
-        if (connectedUser[targetId]) {
+        if (connectedUser[targetId] && user[0].isFollowTarget) {
           socket.to(connectedUser[targetId]).emit("follow", {
             notiType: "follow",
-            user: user[0],
+            sendUser: {
+              userId: user[0].userId,
+              profileImage: user[0].profileImage,
+            },
+            isFollow: user[0].isFollowMe,
+          });
+        }
+        if (user[0].isFollowTarget) {
+          await Notification.create({
+            notiType: "follow",
+            receiveUser: targetId,
+            sendUser: id,
             date: Date.now(),
           });
         }
-        await Notification.create({
-          notiType: "follow",
-          receiveUser: targetId,
-          sendUser: id,
-          date: Date.now(),
-        });
       } catch (error) {
         console.log(error);
       }
