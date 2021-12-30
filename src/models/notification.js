@@ -5,7 +5,7 @@ const notificationSchema = new mongoose.Schema({
   receiveUser: { type: mongoose.Schema.Types.ObjectId },
   sendUser: { type: mongoose.Schema.Types.ObjectId },
   postId: { type: mongoose.Schema.Types.ObjectId },
-  date: { type: Date, expires: "1m" },
+  date: { type: Date, expires: "1h" },
 });
 
 const Notification = mongoose.model("Notification", notificationSchema);

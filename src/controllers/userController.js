@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 
 const User = require("../models/user");
 const Post = require("../models/post");
+const Notification = require("../models/notification");
+const Chat = require("../models/chat");
 
 exports.getUserData = async (req, res, next) => {
   const {
@@ -107,7 +109,6 @@ exports.getUserData = async (req, res, next) => {
   }
 };
 
-const Notification = require("../models/notification");
 exports.getNotification = async (req, res, next) => {
   const { userId } = req;
   try {

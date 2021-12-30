@@ -12,6 +12,7 @@ const commentRouter = require("./routes/commentRouter");
 const accountsRouter = require("./routes/accountsRouter");
 const userRouter = require("./routes/userRouter");
 const searchRouter = require("./routes/searchRouter");
+const chatRouter = require("./routes/chatRouter");
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use("/auth", authRouter);
 app.use("/comment", commentRouter);
 app.use("/accounts", accountsRouter);
 app.use("/user", userRouter);
+app.use("/chat", chatRouter);
 app.use("/", searchRouter);
 
 app.use((error, req, res, next) => {
