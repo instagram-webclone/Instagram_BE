@@ -172,13 +172,6 @@ module.exports = (app) => {
     // });
   });
 
-  // room.on("connect", (socket) => {
-  //   console.log("Room socket connected!");
-  //   socket.on("disconnect", () => {
-  //     console.log("Room socket disconnected!");
-  //   });
-  // });
-
   chat.use(async (socket, next) => {
     const token = socket.handshake.headers.authorization;
     if (token !== "null") {
@@ -200,32 +193,38 @@ module.exports = (app) => {
     const { id, userId, profileImage } = socket.user;
     let roomName;
     let chatData;
-    console.log("Chat socket connected!");
+    console.log("Chat socket connected! ", socket.id);
 
     socket.on("disconnect", () => {
       console.log("Chat socket disconnected! ", socket.id);
-      console.log(socketServer.of("/chat").adapter.rooms);
-      if (Object.keys(connectedChat).length === 0) {
-        connectedChat = {};
-      } else if (Object.keys(connectedChat[roomName]).length === 1) {
-        delete connectedChat[roomName];
-      } else {
+      if (connectedChat[roomName] !== undefined) {
         delete connectedChat[roomName][id];
+        if (Object.keys(connectedChat[roomName]).length === 0) {
+          delete connectedChat[roomName];
+        }
+        socket.leave(roomName);
+        console.log("Leave Room 현재 접속자 ::", connectedChat);
+        console.log(
+          "Leave Room 현재 소켓 접속자 ::",
+          socketServer.of("/chat").adapter.rooms
+        );
       }
-      console.log(connectedChat);
-      socket.leave(roomName);
     });
 
     socket.on("joinRoom", async (roomId) => {
-      roomName = roomId;
+      roomName = roomId.toString();
       chatData = await Chat.findOne({ roomId: roomName });
-      if (Object.keys(connectedChat).indexOf(String(roomName)) === -1) {
+      // console.log(Object.keys(connectedChat).indexOf(String(roomName)));
+      if (!connectedChat[roomName]) {
         connectedChat[roomName] = {};
       }
       connectedChat[roomName][id] = socket.id;
-      console.log(connectedChat);
-      socket.join(roomId);
-      console.log(socketServer.of("/chat").adapter.rooms);
+      socket.join(roomName);
+      console.log("Join Room 현재 접속자 ::", connectedChat);
+      console.log(
+        "Join Room 현재 소켓 접속자 ::",
+        socketServer.of("/chat").adapter.rooms
+      );
     });
 
     socket.on("newMessage", async (message) => {
