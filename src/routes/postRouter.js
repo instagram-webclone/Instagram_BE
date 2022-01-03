@@ -8,7 +8,7 @@ const {
   postDetail,
   updatePost,
   deletePost,
-  postLikeUnlike,
+  postLike,
   savePost,
   showPostLikeUser,
   randomPosts,
@@ -22,7 +22,7 @@ router.delete("/:postId", isAuth, deletePost);
 router.get("/", isAuth, getPosts);
 router.get("/randomPosts", randomPosts);
 router.get("/:postId", isAuth, postDetail);
-router.put("/:postId/like", isAuth, postLikeUnlike);
+router.put("/:postId/like", isAuth, postLike);
 router.put("/:postId/save", isAuth, savePost);
 router.get("/:postId/likeUsers", isAuth, showPostLikeUser);
 

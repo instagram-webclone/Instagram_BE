@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 
 const User = require("../models/user");
 const Post = require("../models/post");
+const Notification = require("../models/notification");
+const Chat = require("../models/chat");
 
 exports.getUserData = async (req, res, next) => {
   const {
@@ -99,6 +101,64 @@ exports.getUserData = async (req, res, next) => {
     } else {
       return res.status(200).json({ ok: true, user, post });
     }
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+    next(error);
+  }
+};
+
+exports.getNotification = async (req, res, next) => {
+  const { userId } = req;
+  try {
+    const notification = await Notification.aggregate([
+      { $match: { receiveUser: new mongoose.Types.ObjectId(userId) } },
+      {
+        $lookup: {
+          from: "users",
+          let: { sendUser: "$sendUser" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$$sendUser", "$_id"] } } },
+            {
+              $project: {
+                userId: 1,
+                profileImage: 1,
+              },
+            },
+          ],
+          as: "sendUser",
+        },
+      },
+      { $unwind: "$sendUser" },
+      {
+        $lookup: {
+          from: "posts",
+          let: { postId: "$postId" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$$postId", "$_id"] } } },
+            { $project: { imageUrl: 1 } },
+          ],
+          as: "post",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          let: { receiveUser: "$receiveUser" },
+          pipeline: [{ $match: { $expr: { $eq: ["$$receiveUser", "$_id"] } } }],
+          as: "receiveUser",
+        },
+      },
+      { $unwind: "$receiveUser" },
+      {
+        $addFields: {
+          isFollow: { $in: ["$sendUser._id", "$receiveUser.follow"] },
+        },
+      },
+      { $project: { _id: 0, receiveUser: 0, postId: 0, __v: 0 } },
+    ]);
+    return res.json({ ok: true, notification: notification });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;

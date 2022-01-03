@@ -122,7 +122,7 @@ exports.deleteComment = async (req, res, next) => {
   }
 };
 
-exports.commentLikeUnlike = async (req, res, next) => {
+exports.commentLike = async (req, res, next) => {
   const {
     userId,
     params: { commentId },
@@ -142,7 +142,7 @@ exports.commentLikeUnlike = async (req, res, next) => {
         await reComment.save();
         return res
           .status(200)
-          .json({ ok: true, message: "Reply comment unlike success" });
+          .json({ ok: true, message: "Reply comment like delete success" });
       }
       // 좋아요를 누르지 않은 경우
       reComment.like.push(userId);
@@ -157,7 +157,7 @@ exports.commentLikeUnlike = async (req, res, next) => {
       await comment.save();
       return res
         .status(200)
-        .json({ ok: true, message: "Comment unlike success" });
+        .json({ ok: true, message: "Comment like delete success" });
     }
     // 좋아요를 누르지 않은 경우
     comment.like.push(userId);
@@ -165,7 +165,7 @@ exports.commentLikeUnlike = async (req, res, next) => {
     return res.status(200).json({ ok: true, message: "Comment like success" });
   } catch (error) {
     if (!error.statusCode) {
-      error.message = "Like/Unlike failed";
+      error.message = "Like/Delete like failed";
       error.statusCode = 500;
     }
     next(error);

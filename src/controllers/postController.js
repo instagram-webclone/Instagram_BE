@@ -366,7 +366,7 @@ exports.postDetail = async (req, res, next) => {
   }
 };
 
-exports.postLikeUnlike = async (req, res, next) => {
+exports.postLike = async (req, res, next) => {
   const {
     userId,
     params: { postId },
@@ -380,7 +380,7 @@ exports.postLikeUnlike = async (req, res, next) => {
     if (post.likeUsers.includes(userId)) {
       post.likeUsers.pull(userId);
       await post.save();
-      return res.status(200).json({ ok: true, message: "Unlike success" });
+      return res.status(200).json({ ok: true, message: "Like delete success" });
     }
     // 좋아요를 누르지 않은 경우
     post.likeUsers.push(userId);
@@ -389,7 +389,7 @@ exports.postLikeUnlike = async (req, res, next) => {
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
-      error.message = "Post like/unlike failed";
+      error.message = "Post like or like delete failed";
     }
     next(error);
   }

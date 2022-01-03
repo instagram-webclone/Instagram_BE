@@ -1,6 +1,9 @@
 const express = require("express");
 
-const { getUserData } = require("../controllers/userController");
+const {
+  getUserData,
+  getNotification,
+} = require("../controllers/userController");
 const { isAuth } = require("../middlewares/authMiddleware");
 const {
   getfollowers,
@@ -12,8 +15,8 @@ const {
 
 const router = express.Router();
 
+router.get("/notification", isAuth, getNotification);
 router.get("/:id", isAuth, getUserData);
-
 router.get("/followers/:id", isAuth, getfollowers);
 router.get("/following/:id", isAuth, getfollowing);
 router.put("/follow/:id", isAuth, follow);
