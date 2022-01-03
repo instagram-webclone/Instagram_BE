@@ -73,16 +73,27 @@ exports.makeChatRoom = async (req, res, next) => {
 };
 
 exports.getChatData = async (req, res, next) => {
-  const { roomId } = req.params;
+  const {
+    userId,
+    params: { roomId },
+  } = req;
   try {
     const chatData = await Chat.findOne(
       { roomId: roomId },
-      { _id: 0, roomId: 1, chats: 1 }
+      { _id: 0, roomId: 1, participant: 1, chats: 1 }
     )
+      .populate("participant", { userId: 1, profileImage: 1 })
       .populate("chats.user", { _id: 0, userId: 1, profileImage: 1 })
       .lean();
+    const participant = chatData.participant.filter(
+      (value) => value._id.toString() !== userId
+    );
     chatData.chats.forEach((el) => delete el["_id"]);
-    return res.status(200).json({ ok: true, chatData: chatData.chats });
+    return res.status(200).json({
+      ok: true,
+      participant: participant,
+      chatData: chatData.chats,
+    });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;

@@ -10,7 +10,7 @@ const {
 const router = express.Router();
 
 router.get("/", isAuth, getChatList);
-router.get("/:roomId", getChatData);
+router.get("/:roomId", isAuth, getChatData);
 router.post("/:roomId", isAuth, makeChatRoom);
 
 module.exports = router;
