@@ -66,39 +66,35 @@ exports.getHashtagSearchResult = async (req, res, next) => {
     params: { keyword },
   } = req;
   try {
-    // const posts = await Post.find(
-    //   {
-    //     hashtags: { $elemMatch: { $regex: new RegExp(word, "i") } },
-    //   },
-    //   { imageUrl: 1, commentCount: 1, likeCount: 1 }
-    // );
+    const post = await HashtagFollow.findOne({ hashtag: keyword });
     let hashtag;
-    hashtag = await HashtagFollow.aggregate([
-      { $match: { hashtag: keyword } },
-      {
-        $project: {
-          _id: 0,
-          hashtag: 1,
-          isFollow: { $in: [userId, "$followUsers"] },
-        },
-      },
-      {
-        $lookup: {
-          from: "posts",
-          pipeline: [{ $match: { $expr: { $in: [keyword, "$hashtags"] } } }],
-          as: "posts",
-        },
-      },
-      { $addFields: { postCount: { $size: "$posts" } } },
-      { $project: { posts: 0 } },
-    ]);
-    if (!hashtag.length) {
-      const posts = await Post.find(
+
+    if (post) {
+      hashtag = await HashtagFollow.aggregate([
+        { $match: { hashtag: keyword } },
         {
-          hashtags: { $elemMatch: { $regex: new RegExp(keyword, "i") } },
+          $project: {
+            _id: 0,
+            hashtag: 1,
+            isFollow: {
+              $in: [new mongoose.Types.ObjectId(userId), "$followUsers"],
+            },
+          },
         },
-        { imageUrl: 1, commentCount: 1, likeCount: 1 }
-      ).lean();
+        {
+          $lookup: {
+            from: "posts",
+            pipeline: [{ $match: { $expr: { $in: [keyword, "$hashtags"] } } }],
+            as: "posts",
+          },
+        },
+        { $addFields: { postCount: { $size: "$posts" } } },
+        { $project: { posts: 0 } },
+      ]);
+    } else {
+      const posts = await Post.find({
+        hashtags: { $elemMatch: { $regex: new RegExp(keyword, "i") } },
+      }).lean();
       hashtag = [
         {
           hashtag: keyword,
@@ -107,6 +103,7 @@ exports.getHashtagSearchResult = async (req, res, next) => {
         },
       ];
     }
+
     const posts = await Post.aggregate([
       {
         $match: {
@@ -127,9 +124,11 @@ exports.getHashtagSearchResult = async (req, res, next) => {
       { $addFields: { commentCount: { $size: "$comments" } } },
       { $project: { imageUrl: 1, likeCount: 1, commentCount: 1 } },
     ]);
+
     if (!posts) {
       return res.status(400).json({ message: "Cannot find posts" });
     }
+
     return res
       .status(200)
       .json({ ok: true, searchHashtag: hashtag[0], posts: posts });
