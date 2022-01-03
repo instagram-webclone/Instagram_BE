@@ -192,7 +192,6 @@ module.exports = (app) => {
   chat.on("connection", (socket) => {
     const { id, userId, profileImage } = socket.user;
     let roomName;
-    let chatData;
     console.log("Chat socket connected! ", socket.id);
 
     socket.on("disconnect", () => {
@@ -212,8 +211,7 @@ module.exports = (app) => {
     });
 
     socket.on("joinRoom", async (roomId) => {
-      roomName = roomId.toString();
-      chatData = await Chat.findOne({ roomId: roomName });
+      roomName = roomId;
       // console.log(Object.keys(connectedChat).indexOf(String(roomName)));
       if (!connectedChat[roomName]) {
         connectedChat[roomName] = {};
@@ -229,6 +227,7 @@ module.exports = (app) => {
 
     socket.on("newMessage", async (message) => {
       console.log(userId + ": " + message);
+      const chatData = await Chat.findOne({ roomId: roomName });
       chatData.chats.push({
         user: id,
         message: message,
