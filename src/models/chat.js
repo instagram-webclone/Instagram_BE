@@ -13,8 +13,8 @@ const chatSchema = new mongoose.Schema({
 });
 
 chatSchema.pre("save", function (next) {
-  if (this.chats.length >= 10) {
-    const sliceChat = this.chats.slice(-10, this.chats.length);
+  if (this.chats.length >= 50) {
+    const sliceChat = this.chats.slice(-50, this.chats.length);
     this.chats = sliceChat;
   }
   next();

@@ -204,10 +204,10 @@ module.exports = (app) => {
         }
         socket.leave(roomName);
         console.log("Leave Room 현재 접속자 ::", connectedChat);
-        console.log(
-          "Leave Room 현재 소켓 접속자 ::",
-          socketServer.of("/chat").adapter.rooms
-        );
+        // console.log(
+        //   "Leave Room 현재 소켓 접속자 ::",
+        //   socketServer.of("/chat").adapter.rooms
+        // );
       }
     });
 
@@ -221,10 +221,10 @@ module.exports = (app) => {
       connectedChat[roomName][id] = socket.id;
       socket.join(roomName);
       console.log("Join Room 현재 접속자 ::", connectedChat);
-      console.log(
-        "Join Room 현재 소켓 접속자 ::",
-        socketServer.of("/chat").adapter.rooms
-      );
+      // console.log(
+      //   "Join Room 현재 소켓 접속자 ::",
+      //   socketServer.of("/chat").adapter.rooms
+      // );
     });
 
     socket.on("newMessage", async (message) => {
