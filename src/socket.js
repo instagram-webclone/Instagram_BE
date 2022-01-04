@@ -61,7 +61,11 @@ module.exports = (app) => {
         if (connectedUser[targetId] && isLike) {
           socket.to(connectedUser[targetId]).emit("postLike", {
             notiType: "postLike",
-            post: { imageUrl: post.imageUrl, contents: post.contents },
+            post: {
+              postId: post._id,
+              imageUrl: post.imageUrl,
+              contents: post.contents,
+            },
             sendUser: { userId, profileImage },
           });
         }
