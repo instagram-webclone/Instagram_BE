@@ -97,12 +97,13 @@ exports.deletePost = async (req, res, next) => {
 };
 
 exports.getPosts = async (req, res, next) => {
-  const { userId } = req;
+  const {
+    userId,
+    query: { page },
+  } = req;
+  const perPage = 7;
   try {
     // Post 전체 조회
-    // const posts = await Post.find({})
-    //   .populate("writer", { userId: 1 })
-    //   .populate("comments");
     const posts = await Post.aggregate([
       {
         $project: {
@@ -175,10 +176,13 @@ exports.getPosts = async (req, res, next) => {
       },
       // { $addFields: { commentCount: { $size: "$comments" } } },
       { $sort: { createdAt: -1 } },
+      { $skip: (+page - 1) * perPage },
+      { $limit: perPage },
     ]);
     if (!posts) {
       return res.status(400).json({ message: "Cannot find posts" });
     }
+
     // 로그인한 사용자를 제외한 모든 사용자 검색
     // const users = await User.find(
     //   { _id: { $ne: userId } },
@@ -218,6 +222,7 @@ exports.getPosts = async (req, res, next) => {
         recommendedUser.push(users[index]);
       });
     }
+
     return res.status(200).json({ ok: true, posts, recommendedUser });
   } catch (error) {
     if (!error.statusCode) {
