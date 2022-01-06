@@ -236,7 +236,9 @@ exports.postDetail = async (req, res, next) => {
   const {
     userId,
     params: { postId },
+    query: { page },
   } = req;
+  const perPage = 10;
   try {
     const post = await Post.aggregate([
       {
@@ -358,6 +360,8 @@ exports.postDetail = async (req, res, next) => {
       },
       { $addFields: { likeCount: { $size: "$like" } } },
       { $project: { like: 0 } },
+      { $skip: (+page - 1) * perPage },
+      { $limit: perPage },
     ]);
     if (!comment) {
       return res.status(400).json({ message: "Cannot find comments" });
