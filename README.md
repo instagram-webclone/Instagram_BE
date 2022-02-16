@@ -5,7 +5,7 @@
 
 <h3>사용 기술</h3>
 
-프론트 엔드
+✔프론트 엔드
 
 - JS
 - React
@@ -16,15 +16,29 @@
 - scss
 - socket.io
 
+✔ 백엔드
+
+- JS
+- Node.js
+- Express
+- Mongoose
+- MongoDB
+- Firebase Storage
+- socket.io
+- AWS EC2
+
+
 ****
 
 <h3>주요 기능</h3>
 
 - 게시글, 댓글 CRUD
 - 게시글, 댓글 좋아요, 북마크
-- 실시간 채팅, 좋아요 알림, 팔로우 알림
+- socket.io를 이용한 실시간 채팅, 좋아요 알림, 팔로우 알림
 - 포스팅 무한스크롤
 - 댓글 페이지네이션
+- 반응형 페이지
+
 
 ****
 
