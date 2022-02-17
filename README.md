@@ -5,6 +5,20 @@
 
 <h3>사용 기술</h3>
 
+✔ 백엔드
+
+- JS
+- Node.js
+- Express
+- Mongoose
+- MongoDB
+- Firebase Storage
+- socket.io
+- AWS EC2
+
+
+****
+
 프론트 엔드
 
 - JS
