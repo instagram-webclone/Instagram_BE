@@ -1,32 +1,20 @@
 <h1>Instagram Clone</h1>
-소셜미디어, 인스타그램을 클론코딩 하였습니다.
+미국의 소셜 미디어, 인스타그램을 클론코딩 하였습니다.
 
 ****
 
 <h3>사용 기술</h3>
 
-✔프론트 엔드
+프론트 엔드
 
 - JS
 - React
 - Redux
 - ReduxToolkit
-- React-router
+- React-router V6
 - axios
 - scss
 - socket.io
-
-✔ 백엔드
-
-- JS
-- Node.js
-- Express
-- Mongoose
-- MongoDB
-- Firebase Storage
-- socket.io
-- AWS EC2
-
 
 ****
 
@@ -34,11 +22,11 @@
 
 - 게시글, 댓글 CRUD
 - 게시글, 댓글 좋아요, 북마크
-- socket.io를 이용한 실시간 채팅, 좋아요 알림, 팔로우 알림
+- 실시간 채팅, 좋아요 알림, 팔로우 알림
+ <img src="https://blog.kakaocdn.net/dn/bingMS/btroSWGim9j/PefWnXEvs15azodqwsooUK/img.gif">
+ <img src="https://blog.kakaocdn.net/dn/zhBrV/btrpoxzoVxd/VbZ09IIb8DCOfWDl8tGzx0/img.gif">
 - 포스팅 무한스크롤
 - 댓글 페이지네이션
-- 반응형 페이지
-
 
 ****
 
